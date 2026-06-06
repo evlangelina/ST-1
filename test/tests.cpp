@@ -148,7 +148,7 @@ INSTANTIATE_TEST_SUITE_P(
         SumSample{5, 5},
         SumSample{7, 10},
         SumSample{10, 17},
-        SumSample{20, 58},
+        SumSample{20, 77},
         SumSample{30, 129},
         SumSample{100, 1060},
         SumSample{500, 21536}));
