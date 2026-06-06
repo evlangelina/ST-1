@@ -4,88 +4,171 @@
 #include <cstdint>
 #include "alg.h"
 
-TEST(st1, checkPrime_2_is_prime) {
-  EXPECT_TRUE(checkPrime(2));
-}
-TEST(st1, checkPrime_3_is_prime) {
-  EXPECT_TRUE(checkPrime(3));
-}
-TEST(st1, checkPrime_4_is_not_prime) {
-  EXPECT_FALSE(checkPrime(4));
-}
-TEST(st1, checkPrime_1_is_not_prime) {
-  EXPECT_FALSE(checkPrime(1));
-}
-TEST(st1, checkPrime_11_is_prime) {
-  EXPECT_TRUE(checkPrime(11));
-}
-TEST(st1, checkPrime_0_is_not_prime) {
-  EXPECT_FALSE(checkPrime(0));
-}
-TEST(st1, checkPrime_5_7_13_17_prime) {
-  EXPECT_TRUE(checkPrime(5));
-  EXPECT_TRUE(checkPrime(7));
-  EXPECT_TRUE(checkPrime(13));
-  EXPECT_TRUE(checkPrime(17));
-}
-TEST(st1, checkPrime_6_8_9_15_not_prime) {
-  EXPECT_FALSE(checkPrime(6));
-  EXPECT_FALSE(checkPrime(8));
-  EXPECT_FALSE(checkPrime(9));
-  EXPECT_FALSE(checkPrime(15));
-}
-TEST(st1, checkPrime_100_not_prime) {
-  EXPECT_FALSE(checkPrime(100));
-}
-TEST(st1, checkPrime_97_prime) {
-  EXPECT_TRUE(checkPrime(97));
+struct PrimalitySample {
+  uint64_t number;
+  bool is_prime;
+};
+
+struct OrdinalSample {
+  uint64_t index;
+  uint64_t prime_value;
+};
+
+struct NextPrimeSample {
+  uint64_t from;
+  uint64_t expected;
+};
+
+struct SumSample {
+  uint64_t bound;
+  uint64_t expected_sum;
+};
+
+class PrimalityParameterizedTest
+    : public ::testing::TestWithParam<PrimalitySample> {};
+
+TEST_P(PrimalityParameterizedTest, CheckPrimeMatchesExpected) {
+  const PrimalitySample& sample = GetParam();
+  EXPECT_EQ(sample.is_prime, checkPrime(sample.number));
 }
 
-TEST(st1, nPrime_1_is_2) {
-  EXPECT_EQ(2u, nPrime(1));
-}
-TEST(st1, nPrime_5_is_11) {
-  EXPECT_EQ(11u, nPrime(5));
-}
-TEST(st1, nPrime_4_is_7) {
-  EXPECT_EQ(7u, nPrime(4));
-}
-TEST(st1, nPrime_2_is_3) {
-  EXPECT_EQ(3u, nPrime(2));
-}
-TEST(st1, nPrime_3_is_5) {
-  EXPECT_EQ(5u, nPrime(3));
-}
-TEST(st1, nPrime_6_is_13) {
-  EXPECT_EQ(13u, nPrime(6));
-}
-TEST(st1, nPrime_10_is_29) {
-  EXPECT_EQ(29u, nPrime(10));
+INSTANTIATE_TEST_SUITE_P(
+    BorderAndSmallValues,
+    PrimalityParameterizedTest,
+    ::testing::Values(
+        PrimalitySample{0, false},
+        PrimalitySample{1, false},
+        PrimalitySample{2, true},
+        PrimalitySample{3, true},
+        PrimalitySample{4, false},
+        PrimalitySample{5, true}));
+
+INSTANTIATE_TEST_SUITE_P(
+    CompositePatterns,
+    PrimalityParameterizedTest,
+    ::testing::Values(
+        PrimalitySample{6, false},
+        PrimalitySample{9, false},
+        PrimalitySample{15, false},
+        PrimalitySample{21, false},
+        PrimalitySample{25, false},
+        PrimalitySample{49, false},
+        PrimalitySample{121, false}));
+
+INSTANTIATE_TEST_SUITE_P(
+    KnownPrimes,
+    PrimalityParameterizedTest,
+    ::testing::Values(
+        PrimalitySample{7, true},
+        PrimalitySample{11, true},
+        PrimalitySample{17, true},
+        PrimalitySample{97, true},
+        PrimalitySample{101, true},
+        PrimalitySample{997, true},
+        PrimalitySample{104729, true}));
+
+INSTANTIATE_TEST_SUITE_P(
+    KnownComposites,
+    PrimalityParameterizedTest,
+    ::testing::Values(
+        PrimalitySample{100, false},
+        PrimalitySample{999, false},
+        PrimalitySample{1000, false},
+        PrimalitySample{100001, false}));
+
+class NPrimeParameterizedTest
+    : public ::testing::TestWithParam<OrdinalSample> {};
+
+TEST_P(NPrimeParameterizedTest, ReturnsCorrectOrdinalPrime) {
+  const OrdinalSample& sample = GetParam();
+  EXPECT_EQ(sample.prime_value, nPrime(sample.index));
 }
 
-TEST(st1, nextPrime_4_is_5) {
-  EXPECT_EQ(5u, nextPrime(4));
+INSTANTIATE_TEST_SUITE_P(
+    FirstTenPrimes,
+    NPrimeParameterizedTest,
+    ::testing::Values(
+        OrdinalSample{1, 2},
+        OrdinalSample{2, 3},
+        OrdinalSample{3, 5},
+        OrdinalSample{4, 7},
+        OrdinalSample{5, 11},
+        OrdinalSample{6, 13},
+        OrdinalSample{7, 17},
+        OrdinalSample{10, 29},
+        OrdinalSample{20, 71},
+        OrdinalSample{25, 97}));
+
+class NextPrimeParameterizedTest
+    : public ::testing::TestWithParam<NextPrimeSample> {};
+
+TEST_P(NextPrimeParameterizedTest, FindsNearestGreaterPrime) {
+  const NextPrimeSample& sample = GetParam();
+  EXPECT_EQ(sample.expected, nextPrime(sample.from));
 }
-TEST(st1, nextPrime_11_is_13) {
-  EXPECT_EQ(13u, nextPrime(11));
+
+INSTANTIATE_TEST_SUITE_P(
+    BasicTransitions,
+    NextPrimeParameterizedTest,
+    ::testing::Values(
+        NextPrimeSample{0, 2},
+        NextPrimeSample{1, 2},
+        NextPrimeSample{2, 3},
+        NextPrimeSample{3, 5},
+        NextPrimeSample{4, 5},
+        NextPrimeSample{5, 7},
+        NextPrimeSample{10, 11},
+        NextPrimeSample{11, 13}));
+
+INSTANTIATE_TEST_SUITE_P(
+    LargerTransitions,
+    NextPrimeParameterizedTest,
+    ::testing::Values(
+        NextPrimeSample{97, 101},
+        NextPrimeSample{100, 101},
+        NextPrimeSample{996, 997},
+        NextPrimeSample{1000, 1009}));
+
+class SumPrimeParameterizedTest
+    : public ::testing::TestWithParam<SumSample> {};
+
+TEST_P(SumPrimeParameterizedTest, AccumulatesPrimesBelowBound) {
+  const SumSample& sample = GetParam();
+  EXPECT_EQ(sample.expected_sum, sumPrime(sample.bound));
 }
-TEST(st1, nextPrime_2_is_3) {
-  EXPECT_EQ(3u, nextPrime(2));
+
+INSTANTIATE_TEST_SUITE_P(
+    LowBounds,
+    SumPrimeParameterizedTest,
+    ::testing::Values(
+        SumSample{0, 0},
+        SumSample{1, 0},
+        SumSample{2, 0},
+        SumSample{3, 2},
+        SumSample{5, 5},
+        SumSample{7, 10},
+        SumSample{10, 17},
+        SumSample{20, 58},
+        SumSample{30, 129},
+        SumSample{100, 1060},
+        SumSample{500, 21536}));
+
+class St1AssignmentFixture : public ::testing::Test {};
+
+TEST_F(St1AssignmentFixture, nPrimeZeroIsZero) {
+  EXPECT_EQ(0u, nPrime(0));
 }
-TEST(st1, nextPrime_1_is_2) {
-  EXPECT_EQ(2u, nextPrime(1));
+
+TEST_F(St1AssignmentFixture, sumPrimeTwoMillion) {
+  const uint64_t result = sumPrime(2000000);
+  const uint64_t expected = 142913828922;
+  EXPECT_EQ(expected, result);
 }
-TEST(st1, nextPrime_3_is_5) {
-  EXPECT_EQ(5u, nextPrime(3));
-}
-TEST(st1, nextPrime_5_is_7) {
-  EXPECT_EQ(7u, nextPrime(5));
-}
-TEST(st1, nextPrime_10_is_11) {
-  EXPECT_EQ(11u, nextPrime(10));
-}
-TEST(st1, nextPrime_100_is_101) {
-  EXPECT_EQ(101u, nextPrime(100));
+
+TEST_F(St1AssignmentFixture, sumPrimeTen) {
+  const uint64_t result = sumPrime(10);
+  const uint64_t expected = 17;
+  EXPECT_EQ(expected, result);
 }
 
 TEST(st1, sumPrime1) {
@@ -93,24 +176,9 @@ TEST(st1, sumPrime1) {
   uint64_t expected = 142913828922;
   EXPECT_EQ(expected, res);
 }
+
 TEST(st1, sumPrime2) {
   uint64_t res = sumPrime(10);
   uint64_t expected = 17;
   EXPECT_EQ(expected, res);
-}
-TEST(st1, sumPrime_5_is_5) {
-  uint64_t res = sumPrime(5);
-  EXPECT_EQ(5u, res);
-}
-TEST(st1, sumPrime_3_is_2) {
-  EXPECT_EQ(2u, sumPrime(3));
-}
-TEST(st1, sumPrime_7_is_10) {
-  EXPECT_EQ(10u, sumPrime(7));
-}
-TEST(st1, sumPrime_100_is_1060) {
-  EXPECT_EQ(1060u, sumPrime(100));
-}
-TEST(st1, sumPrime_2_is_0) {
-  EXPECT_EQ(0u, sumPrime(2));
 }
